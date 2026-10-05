@@ -70,13 +70,21 @@ class VisitResource {
     }
 
     @GetMapping("pets/visits")
-    public Visits read(@RequestParam("petId") List<Integer> petIds) {
+    public Visits read(
+        @RequestParam("petIds") List<Integer> petIds,
+        @RequestParam(value = "page", defaultValue = "0") @Min(0) int page,
+        @RequestParam(value = "size", defaultValue = "50") @Min(1) int size) {
+
         final List<Visit> byPetIdIn = visitRepository.findByPetIdIn(petIds);
-        return new Visits(byPetIdIn);
+        int from = Math.min(page * size, byPetIdIn.size());
+        int to = Math.min(from + size, byPetIdIn.size());
+        return new Visits(byPetIdIn.subList(from, to), page, byPetIdIn.size());
     }
 
     record Visits(
-        List<Visit> items
+        List<Visit> visits,
+        int page,
+        int total
     ) {
     }
 }
